@@ -1,6 +1,11 @@
+#! /usr/bin/env node
+
 var request = require("request");
 var cheerio = require("cheerio");
+var jf = require('jsonfile');
 var	url = "https://www.ticketsource.co.uk/belfasthiddentours";
+
+var OUTPUT_FILE = './eventdata.json'
 
 function twelveToTwentyFour(str) {
 	// str is "1:00PM" or "11:00AM", "11:30AM" etc
@@ -46,7 +51,7 @@ request(url, function (error, response, body) {
       events.push({
         id: $(this).data('id'),
 				name: $(this).find('td[itemprop=name]').text().trim(),
-				link: 'https://www.ticketsource.co.uk/' + $(this).find('a[itemprop=url]').attr('href'),
+				link: 'https://www.ticketsource.co.uk' + $(this).find('a[itemprop=url]').attr('href'),
 				date: getADate($(this).find('td[itemprop=startDate]').text().trim()),
 				ticketsAvailable: $(this).find('td.ticket-count').text(),
 				venueName: $(this).find('span[itemprop=name]').text(),
@@ -54,8 +59,13 @@ request(url, function (error, response, body) {
       })
     });
 
-		output = JSON.parse(events)
-		console.log(output);
+    jf.spaces = 2;
+    jf.writeFile(OUTPUT_FILE, events, function(err) {
+      if (err) {
+        console.log(err);
+      }
+    })
+		//console.log(output);
 	} else {
 		console.log("We’ve encountered an error: " + error);
 	}
